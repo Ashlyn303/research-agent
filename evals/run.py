@@ -9,17 +9,20 @@ Usage:
 import argparse
 import sys
 import time
+from collections.abc import Callable, Iterable
 from pathlib import Path
+from typing import Any
 
 import yaml
 from dotenv import find_dotenv, load_dotenv
 from langchain.chat_models import init_chat_model
 from langsmith import Client
+from langsmith.schemas import Example
 from pydantic import BaseModel, Field
 
 from evals.checks import citation_validity, extract_ids, must_retrieve_recall, retrieved_ids
 from research_agent.agent import RefusalError, build_agent, final_answer
-from research_agent.config import load_settings
+from research_agent.config import Settings, load_settings
 from research_agent.run_info import git_commit, prompt_version, run_config
 from research_agent.usage import summarize_usage
 
@@ -73,7 +76,7 @@ def sync_dataset(client: Client, cases: list[dict]) -> None:
         client.delete_example(stale.id)
 
 
-def make_target(settings):
+def make_target(settings: Settings) -> Callable[[dict], dict]:
     agent = build_agent(settings)
 
     config = run_config(settings, "evals")
@@ -168,20 +171,22 @@ Key points:
 {key_points}"""
 
 
-def make_key_points_judge():
+def make_key_points_judge() -> Callable[[dict, dict, dict], dict]:
     judge = init_chat_model(JUDGE_MODEL, model_provider="anthropic").with_structured_output(
         JudgeResult, method="json_schema"
     )
 
     def key_points_covered(inputs: dict, outputs: dict, reference_outputs: dict) -> dict:
         points = reference_outputs["key_points"]
-        result: JudgeResult = judge.invoke(
+        result = judge.invoke(
             JUDGE_PROMPT.format(
                 question=inputs["question"],
                 answer=outputs["answer"],
                 key_points="\n".join(f"- {p}" for p in points),
             )
         )
+        if not isinstance(result, JudgeResult):
+            raise TypeError(f"Judge returned {type(result).__name__}, expected JudgeResult")
         covered = sum(v.covered for v in result.verdicts)
         missed = [v.point for v in result.verdicts if not v.covered]
         return {
@@ -193,7 +198,7 @@ def make_key_points_judge():
     return key_points_covered
 
 
-def print_summary(results, scored_keys: list[str]) -> None:
+def print_summary(results: Iterable[Any], scored_keys: list[str]) -> None:
     rows = []
     for row in results:
         scores = {r.key: r.score for r in row["evaluation_results"]["results"]}
@@ -222,13 +227,13 @@ def main(argv: list[str] | None = None) -> int:
 
     client = Client()
     sync_dataset(client, load_cases())
-    data = DATASET_NAME
+    data: str | list[Example] = DATASET_NAME
     if only:
         load_cases(only)  # validates the ids
         data = [
             example
             for example in client.list_examples(dataset_name=DATASET_NAME)
-            if example.metadata["case_id"] in only
+            if (example.metadata or {}).get("case_id") in only
         ]
 
     results = client.evaluate(

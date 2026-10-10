@@ -10,8 +10,8 @@ from research_agent import cli
 class FakeAgent:
     def __init__(self, reply: AIMessage):
         self.reply = reply
-        self.questions = []
-        self.configs = []
+        self.questions: list[str] = []
+        self.configs: list[dict | None] = []
 
     def invoke(self, state, config=None):
         self.questions.append(state["messages"][0]["content"])

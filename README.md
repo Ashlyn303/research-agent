@@ -61,9 +61,10 @@ tests/             unit tests with fake PubMed responses and a fake agent
 uv run pytest          # tool tests with fake PubMed responses (no network or API keys)
 uv run ruff check .    # lint
 uv run ruff format .   # format
+uv run mypy            # type check
 ```
 
-GitHub Actions runs lint, format check and tests on every push and pull request.
+GitHub Actions runs lint, format check, type check and tests on every push and pull request.
 
 ## Tracing
 

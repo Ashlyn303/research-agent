@@ -6,6 +6,8 @@ from functools import cache
 from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
 
+from langchain_core.runnables import RunnableConfig
+
 from research_agent.agent import SYSTEM_PROMPT
 from research_agent.config import Settings
 
@@ -41,7 +43,7 @@ def package_version() -> str:
         return "unknown"
 
 
-def run_config(settings: Settings, source: str) -> dict:
+def run_config(settings: Settings, source: str) -> RunnableConfig:
     """LangChain run config: tags and metadata shown on the LangSmith trace."""
     return {
         "run_name": "research-agent",
