@@ -6,14 +6,14 @@ Progress is tracked in [GitHub milestones](https://github.com/Ashlyn303/research
 
 ## 1. Goal
 
-A **research and learning assistant for science and technology**: it answers my questions with cited, verifiable sources, remembers context within a session, and turns sessions worth keeping into a connected knowledge base in Obsidian and Zotero.
+A **learning and research assistant for science, technology and AI engineering**: it helps me learn new topics and research them in depth, answers with cited, verifiable sources, remembers context within a session, and turns sessions worth keeping into a connected knowledge base in Obsidian and Zotero.
 
-Topics I'll use it for: de novo protein design, AI agents and LLMs, basic biology and statistics.
+Topics I'll use it for include de novo protein design, AI agents, LLMs and AI engineering, basic biology and statistics, plus other science and tech topics I study for fun. Any science or tech topic is in scope.
 
 The project serves two purposes, in this order:
 
 1. **Portfolio:** show production-grade agent engineering (measured quality, explicit agent design, testing, CI, security, documentation).
-2. **Daily use:** a tool I actually use for research and learning.
+2. **Daily use:** the tool I actually use to learn and research science and tech topics.
 
 ### Success criteria for v1.0
 
@@ -31,7 +31,7 @@ The project serves two purposes, in this order:
 
 ### Out of scope for v1.0
 
-Hobby and general everyday questions (Claude itself is better for those), multi-user hosting, paid databases, clinical or medical advice, fine-tuning models.
+Everyday questions outside science and technology (Claude itself is better for those), multi-user hosting, paid databases, clinical or medical advice, fine-tuning models.
 
 ## 2. Where we are
 
@@ -49,7 +49,7 @@ Hobby and general everyday questions (Claude itself is better for those), multi-
 | Path | Example | What the agent does |
 |---|---|---|
 | **Research** | "What are recent approaches to de novo binder design?" | Searches PubMed/arXiv, reads papers, answers with citations |
-| **Learning** | "How do diffusion models work?", "t-test vs Mann-Whitney?" | Explains step by step, then gives a few sources for further reading |
+| **Learning** | "How do diffusion models work?", "t-test vs Mann-Whitney?", "How does LangGraph checkpointing work?" | Explains step by step, then gives a few sources for further reading (papers, reviews, official documentation) |
 
 A router at the start of the graph decides the path.
 
@@ -273,7 +273,7 @@ Spend limit set in the Anthropic console, auto-reload off. Unit and graph tests 
 | 2026-10-10 | Repository lives outside Dropbox (`~/projects`); GitHub is the backup |
 | 2026-10-10 | Relevance sort plus `min_year` filter instead of date sort |
 | 2026-10-10 | Evals before new features (M1 first) |
-| 2026-10-10 | Scope: research and learning assistant for science and technology, two paths; hobbies out of scope |
+| 2026-10-10 | Scope: learning and research assistant for any science, technology and AI engineering topic, with two paths (learning, research) |
 | 2026-10-10 | MVP tools: `search_pubmed`, `search_arxiv`, batch `get_papers`; structured answers |
 | 2026-10-10 | Save per session, not per question: one Obsidian session note; Zotero only for the summary's key papers, after review |
 | 2026-10-10 | Own literature tools in Python; MCP used to expose them (M5), not to replace them |
