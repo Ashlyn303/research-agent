@@ -5,7 +5,7 @@
 A research assistant agent that searches PubMed, reads abstracts, and writes a cited summary answering a scientific question. Built with [LangGraph](https://github.com/langchain-ai/langgraph) / LangChain and Claude, with tracing in [LangSmith](https://smith.langchain.com).
 
 ```
-$ uv run agent.py "What are recent approaches to de novo protein design?"
+$ uv run research-agent "What are recent approaches to de novo protein design?"
 
 # Recent Approaches to De Novo Protein Design
 ## 1. Diffusion models for binder design
@@ -38,7 +38,19 @@ cp .env.example .env   # then fill in your keys
 ## Usage
 
 ```bash
-uv run agent.py "your research question"
+uv run research-agent "your research question"
+uv run research-agent -v "your research question"   # also log each tool call
+```
+
+## Project layout
+
+```
+src/research_agent/
+  config.py        settings from environment / .env, validated at startup
+  tools/pubmed.py  PubMed search and abstract tools (rate-limited NCBI client)
+  agent.py         builds the agent; nothing is created at import time
+  cli.py           `research-agent` command
+tests/             unit tests with fake PubMed responses and a fake agent
 ```
 
 ## Development
@@ -54,6 +66,7 @@ GitHub Actions runs lint, format check and tests on every push and pull request.
 ## Problems solved along the way
 
 - **Safety-classifier false positives on biology questions.** A plain question about protein design was declined (`stop_reason: refusal`, category `bio`). The agent now enables Anthropic's server-side fallback, so a declined request is retried on a fallback model within the same call, and a final refusal is reported clearly instead of printing an empty answer.
+- **Fallback blocks broke multi-step runs.** When the fallback ran, `langchain-anthropic` saved the response's `fallback` block with the Python field name `from_` instead of `from`, so the next model call failed with `fallback.from: Field required`. A small agent middleware restores the field name before each model call.
 - **NCBI rate limits.** Claude issues tool calls in parallel, which exceeded NCBI's 3 requests/second limit and crashed the run. Requests are now throttled with a shared lock, retried on HTTP 429, and tool errors are returned to the model rather than raised.
 
 ## Roadmap
