@@ -25,12 +25,21 @@ def no_sleep(monkeypatch):
     monkeypatch.setattr(pubmed.time, "sleep", lambda seconds: None)
 
 
+class Calls(list):
+    """Endpoints called, in order; `.params` holds the params sent with each call."""
+
+    def __init__(self):
+        super().__init__()
+        self.params = []
+
+
 def fake_ncbi(monkeypatch, responses):
     """Make requests.get return the given responses in order, and record each call."""
-    calls = []
+    calls = Calls()
 
     def fake_get(url, params, timeout):
         calls.append(url.rsplit("/", 1)[-1])
+        calls.params.append(params)
         return responses.pop(0)
 
     monkeypatch.setattr(pubmed.requests, "get", fake_get)
@@ -84,3 +93,20 @@ def test_get_abstract(monkeypatch):
 def test_get_abstract_error_is_returned_to_the_model(monkeypatch):
     fake_ncbi(monkeypatch, [FakeResponse(429), FakeResponse(429), FakeResponse(429)])
     assert pubmed.get_abstract.invoke({"pmid": "111"}).startswith("Could not fetch PMID 111")
+
+
+def test_search_sorts_by_relevance(monkeypatch):
+    calls = fake_ncbi(monkeypatch, [SEARCH_HIT, SUMMARIES])
+    pubmed.search_pubmed.invoke({"query": "protein design"})
+    search_params = calls.params[0]
+    assert search_params["sort"] == "relevance"
+    assert "mindate" not in search_params
+
+
+def test_search_can_limit_to_recent_years(monkeypatch):
+    calls = fake_ncbi(monkeypatch, [SEARCH_HIT, SUMMARIES])
+    pubmed.search_pubmed.invoke({"query": "protein design", "min_year": 2024})
+    search_params = calls.params[0]
+    assert search_params["sort"] == "relevance"
+    assert search_params["datetype"] == "pdat"
+    assert search_params["mindate"] == "2024"

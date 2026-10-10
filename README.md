@@ -19,7 +19,7 @@ The agent runs a tool-calling loop: Claude decides what to search, calls the too
 
 | Tool            | What it does                                                                    |
 | --------------- | ------------------------------------------------------------------------------- |
-| `search_pubmed` | Searches PubMed via NCBI E-utilities, returns titles, journals, years and PMIDs |
+| `search_pubmed` | Searches PubMed via NCBI E-utilities, sorted by relevance with an optional `min_year` filter; returns titles, journals, years and PMIDs |
 | `get_abstract`  | Fetches the abstract for one PMID                                               |
 
 ## Setup
@@ -71,7 +71,7 @@ GitHub Actions runs lint, format check and tests on every push and pull request.
 
 ## Roadmap
 
-- [ ] Sort PubMed results by relevance
+- [x] Sort PubMed results by relevance
 - [ ] Rebuild as an explicit LangGraph `StateGraph` (search → read → "enough evidence?" → summarize)
 - [ ] Human-in-the-loop approval before reading full papers
 - [ ] Save summaries to an Obsidian vault
