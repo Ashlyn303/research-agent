@@ -2,7 +2,7 @@
 
 import re
 
-from langchain_core.messages import AIMessage, BaseMessage, ToolMessage
+from langchain_core.messages import BaseMessage, ToolMessage
 
 # PMIDs are 1-9 digit numbers; requiring 6+ digits avoids years and most quantities.
 PMID_RE = re.compile(r"(?<![\w.])\d{6,9}(?![\w.])")
@@ -14,19 +14,13 @@ def extract_ids(text: str) -> set[str]:
     return set(PMID_RE.findall(text)) | set(ARXIV_RE.findall(text))
 
 
-def summarize_run(messages: list[BaseMessage]) -> dict:
-    """Collect what the evals need from an agent run's messages."""
-    retrieved: set[str] = set()
-    tool_calls = 0
-    tokens = 0
+def retrieved_ids(messages: list[BaseMessage]) -> list[str]:
+    """IDs of all sources that appeared in tool results during a run."""
+    found: set[str] = set()
     for message in messages:
         if isinstance(message, ToolMessage):
-            retrieved |= extract_ids(str(message.content))
-        elif isinstance(message, AIMessage):
-            tool_calls += len(message.tool_calls)
-            if message.usage_metadata:
-                tokens += message.usage_metadata["total_tokens"]
-    return {"retrieved_ids": sorted(retrieved), "tool_calls": tool_calls, "tokens": tokens}
+            found |= extract_ids(str(message.content))
+    return sorted(found)
 
 
 def citation_validity(cited: set[str], retrieved: set[str]) -> float:

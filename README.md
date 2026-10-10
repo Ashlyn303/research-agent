@@ -33,13 +33,13 @@ cp .env.example .env   # then fill in your keys
 
 - `ANTHROPIC_API_KEY`: from [console.anthropic.com](https://console.anthropic.com)
 - `LANGSMITH_API_KEY`: optional, from [smith.langchain.com](https://smith.langchain.com), for tracing every step of a run
-- `MODEL`: defaults to `claude-opus-5-5`; `claude-sonnet-5-5` costs about half as much
+- `MODEL`: defaults to `claude-sonnet-5-5` (used for development and evals); set `claude-opus-5-5` for the strongest answers at about 4x the cost
 
 ## Usage
 
 ```bash
 uv run research-agent "your research question"
-uv run research-agent -v "your research question"   # also log each tool call
+uv run research-agent -v "your research question"   # also log tool calls, tokens, cost and time
 ```
 
 ## Project layout
@@ -50,6 +50,8 @@ src/research_agent/
   tools/pubmed.py  PubMed search and abstract tools (rate-limited NCBI client)
   agent.py         builds the agent; nothing is created at import time
   cli.py           `research-agent` command
+  usage.py         tokens, cost and timing per run
+  run_info.py      trace tags and metadata (model, prompt version, git commit)
 tests/             unit tests with fake PubMed responses and a fake agent
 ```
 
@@ -62,6 +64,10 @@ uv run ruff format .   # format
 ```
 
 GitHub Actions runs lint, format check and tests on every push and pull request.
+
+## Tracing
+
+Every run is traced in LangSmith with tags (`cli` or `evals`, model) and metadata: model, prompt version (hash of the system prompt), git commit and app version, so any answer can be traced back to the exact code and prompt that produced it. Cost is computed per model call from token usage, priced by the model that actually served the call (the refusal fallback can switch models mid-run).
 
 ## Evaluation
 
