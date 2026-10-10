@@ -39,14 +39,27 @@ def _eutils(endpoint: str, params: dict) -> requests.Response:
 
 
 @tool
-def search_pubmed(query: str, max_results: int = 5) -> str:
-    """Search PubMed and return titles, journals, years and PMIDs of matching papers."""
-    logger.info("Searching PubMed: %r (max %d)", query, max_results)
+def search_pubmed(query: str, max_results: int = 5, min_year: int | None = None) -> str:
+    """Search PubMed and return titles, journals, years and PMIDs of matching papers.
+
+    Results are ordered by relevance. Set min_year to only include papers published in or
+    after that year, e.g. for questions about recent work.
+    """
+    logger.info(
+        "Searching PubMed: %r (max %d, from %s)", query, max_results, min_year or "any year"
+    )
+    params = {
+        "db": "pubmed",
+        "term": query,
+        "retmax": max_results,
+        "retmode": "json",
+        # PubMed's default order is newest first, which surfaces off-topic papers.
+        "sort": "relevance",
+    }
+    if min_year is not None:
+        params |= {"datetype": "pdat", "mindate": str(min_year), "maxdate": "3000"}
     try:
-        ids = _eutils(
-            "esearch.fcgi",
-            {"db": "pubmed", "term": query, "retmax": max_results, "retmode": "json"},
-        ).json()["esearchresult"]["idlist"]
+        ids = _eutils("esearch.fcgi", params).json()["esearchresult"]["idlist"]
         if not ids:
             return "No results."
         summaries = _eutils(
