@@ -1,9 +1,13 @@
 """Builds the research agent. Nothing is created until `build_agent` is called."""
 
+from collections.abc import Callable
+from typing import Any, TypeGuard
+
 from langchain.agents import create_agent
-from langchain.agents.middleware import ModelRequest, wrap_model_call
+from langchain.agents.middleware import ModelRequest, ModelResponse, wrap_model_call
 from langchain.chat_models import init_chat_model
 from langchain_core.messages import AIMessage, AnyMessage
+from langgraph.graph.state import CompiledStateGraph
 
 from research_agent.config import Settings
 from research_agent.tools import ALL_TOOLS
@@ -30,26 +34,29 @@ def fix_fallback_block_fields(message: AnyMessage) -> AnyMessage:
         return message
     if not any(_is_broken_fallback(block) for block in message.content):
         return message
-    content = [
-        {("from" if key == "from_" else key): value for key, value in block.items()}
-        if _is_broken_fallback(block)
-        else block
-        for block in message.content
-    ]
+    content = [_fix_block(block) for block in message.content]
     return message.model_copy(update={"content": content})
 
 
-def _is_broken_fallback(block) -> bool:
+def _is_broken_fallback(block: object) -> TypeGuard[dict[str, Any]]:
     return isinstance(block, dict) and block.get("type") == "fallback" and "from_" in block
 
 
+def _fix_block(block: str | dict[str, Any]) -> str | dict[str, Any]:
+    if not _is_broken_fallback(block):
+        return block
+    return {("from" if key == "from_" else key): value for key, value in block.items()}
+
+
 @wrap_model_call
-def fix_fallback_blocks(request: ModelRequest, handler):
+def fix_fallback_blocks(
+    request: ModelRequest, handler: Callable[[ModelRequest], ModelResponse]
+) -> ModelResponse:
     messages = [fix_fallback_block_fields(m) for m in request.messages]
     return handler(request.override(messages=messages))
 
 
-def build_agent(settings: Settings):
+def build_agent(settings: Settings) -> CompiledStateGraph:
     # If Claude's safety classifier declines a request (e.g. a false positive on a
     # biology question), the API retries it on a fallback model inside the same call.
     model = init_chat_model(
