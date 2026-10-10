@@ -177,6 +177,14 @@ Grow the eval set to ~20 questions, including cases from 👎 feedback.
 |---|---|
 | #22 | Architecture diagram, demo, CHANGELOG, `v1.0.0` release, project write-up |
 
+### After v1.0
+
+Ideas kept out of v1.0 to protect the timeline, tracked in the [Later milestone](https://github.com/Ashlyn303/research-agent/milestones):
+
+| Issue | Idea |
+|---|---|
+| #35 | Installable desktop app for labmates: wrap the web interface (pywebview or Tauri), users bring their own API key or use a server with limits, signed and notarized for macOS |
+
 ### Timeline
 
 | Weeks (from Oct 12, 2026) | Milestone |
@@ -281,5 +289,6 @@ Spend limit set in the Anthropic console, auto-reload off. Unit and graph tests 
 | 2026-10-10 | Save per session, not per question: one Obsidian session note; Zotero only for the summary's key papers, after review |
 | 2026-10-10 | Own literature tools in Python; MCP used to expose them (M5), not to replace them |
 | 2026-10-10 | Add trusted-site web search and YouTube suggestions (M3) for engineering and learning topics |
+| 2026-10-10 | Desktop app is a post-v1.0 idea; never ship an API key inside an app |
 
 Longer explanations go into design decision records in `docs/adr/` (#9).
