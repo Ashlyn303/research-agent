@@ -1,0 +1,52 @@
+name: Evals
+
+# Runs the evaluation set against real Claude. Costs API credits, so it only runs
+# when started by hand: Actions tab -> Evals -> Run workflow.
+on:
+  workflow_dispatch:
+    inputs:
+      model:
+        description: "Model to evaluate"
+        default: "claude-sonnet-5-5"
+        type: choice
+        options: ["claude-sonnet-5-5", "claude-opus-5-5", "claude-haiku-5-5"]
+      cases:
+        description: "Comma-separated case ids (empty = all)"
+        required: false
+        default: ""
+
+jobs:
+  evals:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      LANGSMITH_API_KEY: ${{ secrets.LANGSMITH_API_KEY }}
+      LANGSMITH_TRACING: "true"
+      LANGSMITH_PROJECT: research-agent
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --locked
+
+      - name: Run evals
+        # Inputs go through env vars, not ${{ }} in the script, to avoid shell injection.
+        env:
+          MODEL_INPUT: ${{ inputs.model }}
+          CASES_INPUT: ${{ inputs.cases }}
+        run: |
+          args=(--model "$MODEL_INPUT")
+          if [ -n "$CASES_INPUT" ]; then args+=(--cases "$CASES_INPUT"); fi
+          uv run python -m evals.run "${args[@]}" | tee eval-summary.txt
+
+      - name: Show summary
+        if: always()
+        run: |
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          cat eval-summary.txt >> "$GITHUB_STEP_SUMMARY" || true
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
