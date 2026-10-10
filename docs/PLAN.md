@@ -8,7 +8,7 @@ Progress is tracked in [GitHub milestones](https://github.com/Ashlyn303/research
 
 A **learning and research assistant for science, technology and AI engineering**: it helps me learn new topics and research them in depth, answers with cited, verifiable sources, remembers context within a session, and turns sessions worth keeping into a connected knowledge base in Obsidian and Zotero.
 
-Topics I'll use it for include de novo protein design, AI agents, LLMs and AI engineering, basic biology and statistics, plus other science and tech topics I study for fun. Any science or tech topic is in scope.
+Topics I'll use it for include de novo protein design, AI agents, LLMs and AI engineering, basic biology and statistics, and hands-on engineering I study for fun: electronics and electrical engineering, PCB design, microcontrollers (e.g. ESP32) and mechanics. Any science or tech topic is in scope.
 
 The project serves two purposes, in this order:
 
