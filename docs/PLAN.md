@@ -22,7 +22,7 @@ The project serves two purposes, in this order:
 | Quality | ~20 evaluation questions with recorded scores; every change to prompts, models, tools or the graph is compared against the previous scores |
 | Trust | Every citation in an answer refers to a source the agent actually retrieved |
 | Design | Explicit LangGraph `StateGraph` with typed state, a research/learning router, sessions and a human review step |
-| Sources | PubMed and arXiv, plus open-access full text and preprints |
+| Sources | PubMed and arXiv, open-access full text, preprints, trusted documentation and web pages, YouTube videos |
 | Knowledge base | Session notes and key paper notes in Obsidian; key papers saved to Zotero |
 | Access | CLI, web interface, MCP server for Claude Code / Claude Desktop, weekly digest |
 | Engineering | CI (lint, format, types, tests), pre-commit secret scanning, branch protection, Dependabot |
@@ -103,7 +103,7 @@ LangGraph StateGraph (checkpointer = sessions)
   "wrap up" ─► session summary ─► [my review] ─► Obsidian + Zotero
         │
         ▼
-Sources: PubMed · arXiv · (M3) PubMed Central full text · preprints · Semantic Scholar
+Sources: PubMed · arXiv · (M3) PubMed Central full text · preprints · Semantic Scholar · trusted docs/web · YouTube
 Quality: LangSmith traces (tagged) · datasets and experiments · feedback · cost tracking
 ```
 
@@ -141,17 +141,19 @@ The **minimum viable product**: the smallest version that is truly useful. Ask q
 
 **Done when:** all eval questions score at least as well as the M1 baseline, citation validity is 100%, and `v0.2.0` is tagged.
 
-### M3: More sources (weeks 9–11, ~12 hours)
+### M3: More sources (weeks 9–12, ~16 hours)
 
 | Issue | Work |
 |---|---|
 | #16 | Common source interface; PubMed Central / Europe PMC full text |
 | #17 | bioRxiv/medRxiv preprints, labeled as not peer-reviewed |
 | #18 | Semantic Scholar citation counts and related papers |
+| #32 | Documentation and web search, limited to a trusted-sites list (AI engineering, electronics, PCB design) |
+| #33 | YouTube video suggestions with links, in a separate "Videos" section |
 
 Grow the eval set to ~20 questions, including cases from 👎 feedback.
 
-### M4: Knowledge outputs (weeks 12–14, ~10 hours)
+### M4: Knowledge outputs (weeks 13–15, ~10 hours)
 
 | Issue | Work |
 |---|---|
@@ -161,7 +163,7 @@ Grow the eval set to ~20 questions, including cases from 👎 feedback.
 
 **Done when:** a real session goes from questions to an approved Obsidian note and Zotero items, following the rules above.
 
-### M5: Access & automation (weeks 15–17, ~10 hours)
+### M5: Access & automation (weeks 16–18, ~10 hours)
 
 | Issue | Work |
 |---|---|
@@ -169,7 +171,7 @@ Grow the eval set to ~20 questions, including cases from 👎 feedback.
 | #20 | Streamlit web interface (also the demo) |
 | #21 | Weekly digest on GitHub Actions with a spend cap |
 
-### M6: v1.0 (weeks 18–19, ~6 hours)
+### M6: v1.0 (weeks 19–20, ~6 hours)
 
 | Issue | Work |
 |---|---|
@@ -181,10 +183,10 @@ Grow the eval set to ~20 questions, including cases from 👎 feedback.
 |---|---|
 | 1–2 | M1: Measure |
 | 3–8 | M2: MVP (v0.2.0) |
-| 9–11 | M3: More sources |
-| 12–14 | M4: Knowledge outputs |
-| 15–17 | M5: Access & automation |
-| 18–19 | M6: v1.0 (target: late February 2027) |
+| 9–12 | M3: More sources |
+| 13–15 | M4: Knowledge outputs |
+| 16–18 | M5: Access & automation |
+| 19–20 | M6: v1.0 (target: early March 2027) |
 
 If a milestone runs over, move the dates rather than skipping the "done when" checks. Easiest to trim: #18 (Semantic Scholar) and #21 (digest) can move after v1.0.
 
@@ -258,8 +260,9 @@ Spend limit set in the Anthropic console, auto-reload off. Unit and graph tests 
 |---|---|
 | Safety-classifier false positives on biology questions | Server-side fallback (done); track refusal rate in evals |
 | Hallucinated or wrong citations | Citation check (#19) and eval scoring |
+| Low-quality web pages or videos | Trusted-sites and trusted-channels lists; videos are suggestions, never evidence |
 | Cluttered Obsidian vault or Zotero library | Session-level saving only, own folder/collection, review before saving, duplicate checks |
-| External API limits (NCBI, arXiv, Europe PMC, Semantic Scholar) | Shared rate-limited client, retries, tests with fake responses |
+| External API limits (NCBI, arXiv, Europe PMC, Semantic Scholar, YouTube quota) | Shared rate-limited client, retries, tests with fake responses |
 | LangChain/LangGraph API changes | Pinned versions in `uv.lock`; Dependabot PRs tested by CI and evals |
 | Cost overruns | Sonnet for development, spend limit, per-run cap for the digest |
 | Scope creep | New ideas become issues in a later milestone, not part of the current PR |
@@ -277,5 +280,6 @@ Spend limit set in the Anthropic console, auto-reload off. Unit and graph tests 
 | 2026-10-10 | MVP tools: `search_pubmed`, `search_arxiv`, batch `get_papers`; structured answers |
 | 2026-10-10 | Save per session, not per question: one Obsidian session note; Zotero only for the summary's key papers, after review |
 | 2026-10-10 | Own literature tools in Python; MCP used to expose them (M5), not to replace them |
+| 2026-10-10 | Add trusted-site web search and YouTube suggestions (M3) for engineering and learning topics |
 
 Longer explanations go into design decision records in `docs/adr/` (#9).
