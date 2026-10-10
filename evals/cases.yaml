@@ -1,0 +1,61 @@
+# Evaluation questions. Edit freely; run `uv run python -m evals.run` to score the agent.
+#
+# category:      research | learning | no-evidence
+# topic:         protein-design | ai-llm | biology | statistics | ...
+# must_retrieve: source IDs a good search should find (PMIDs, or arXiv IDs like 2210.03629)
+# key_points:    what a good answer must include; scored by an LLM judge.
+#                Keep one idea per point: combined points fail if either half is missing.
+
+- id: rfdiffusion-proteinmpnn-pipeline
+  category: research
+  topic: protein-design
+  question: "How do RFdiffusion and ProteinMPNN work together in a de novo binder design pipeline?"
+  must_retrieve: ["37433327", "36108050"]
+  key_points:
+    - "RFdiffusion generates the protein backbone (3D shape) by denoising from random noise, guided by the target"
+    - "ProteinMPNN designs an amino acid sequence that should fold into that backbone"
+    - "Designs are filtered by structure prediction (e.g. AlphaFold2) before experimental testing"
+
+- id: react-agents
+  category: research
+  topic: ai-llm
+  question: "What is the ReAct approach for LLM agents, and why does it work better than reasoning alone?"
+  must_retrieve: ["2210.03629"]
+  key_points:
+    - "The model alternates between reasoning steps and actions (tool calls), reading each observation before continuing"
+    - "Grounding in real observations reduces hallucination compared with chain-of-thought reasoning alone"
+    - "Evaluated on question answering / fact checking (HotpotQA, FEVER) and interactive tasks (ALFWorld, WebShop)"
+
+- id: sequence-determines-structure
+  category: learning
+  topic: biology
+  question: "Explain why a protein's amino acid sequence determines its 3D structure."
+  must_retrieve: []
+  key_points:
+    - "The hydrophobic effect: nonpolar side chains are buried in the core, away from water"
+    - "Backbone hydrogen bonds form secondary structure (alpha-helices, beta-sheets)"
+    - "Anfinsen's experiment: denatured ribonuclease refolded on its own, showing the sequence holds the information"
+    - "The native (folded) state is the lowest free-energy state"
+    - "Chaperones help folding in cells but do not determine the final shape"
+
+- id: mann-whitney-vs-t-test
+  category: learning
+  topic: statistics
+  question: "When should I use a Mann-Whitney U test instead of a t-test?"
+  must_retrieve: []
+  key_points:
+    - "Both tests compare two independent groups"
+    - "Paired data needs a paired t-test or the Wilcoxon signed-rank test instead"
+    - "The t-test compares means and assumes roughly normal data, which matters most with small samples"
+    - "Mann-Whitney is rank-based (non-parametric), better for skewed data, outliers or ordinal data"
+    - "Mann-Whitney tests whether one group tends to have larger values; it only compares medians if both distributions have the same shape"
+
+- id: nonexistent-method
+  category: no-evidence
+  topic: protein-design
+  question: "What did recent studies find about the HelixForge diffusion method for designing GPCR agonists?"
+  must_retrieve: []
+  key_points:
+    - "Clearly states that no papers about HelixForge were found"
+    - "Does not invent findings, authors or citations for HelixForge"
+    - "If it mentions real related methods (e.g. RFdiffusion), it clearly labels them as different methods"
