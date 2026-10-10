@@ -7,8 +7,8 @@ Usage:
 """
 
 import argparse
-import subprocess
 import sys
+import time
 from pathlib import Path
 
 import yaml
@@ -17,9 +17,11 @@ from langchain.chat_models import init_chat_model
 from langsmith import Client
 from pydantic import BaseModel, Field
 
-from evals.checks import citation_validity, extract_ids, must_retrieve_recall, summarize_run
+from evals.checks import citation_validity, extract_ids, must_retrieve_recall, retrieved_ids
 from research_agent.agent import RefusalError, build_agent, final_answer
 from research_agent.config import load_settings
+from research_agent.run_info import git_commit, prompt_version, run_config
+from research_agent.usage import summarize_usage
 
 CASES_FILE = Path(__file__).with_name("cases.yaml")
 DATASET_NAME = "research-agent-evals"
@@ -74,13 +76,27 @@ def sync_dataset(client: Client, cases: list[dict]) -> None:
 def make_target(settings):
     agent = build_agent(settings)
 
+    config = run_config(settings, "evals")
+
     def target(inputs: dict) -> dict:
-        result = agent.invoke({"messages": [{"role": "user", "content": inputs["question"]}]})
+        started = time.monotonic()
+        result = agent.invoke(
+            {"messages": [{"role": "user", "content": inputs["question"]}]}, config=config
+        )
+        usage = summarize_usage(result["messages"], seconds=time.monotonic() - started)
         try:
             answer, refused = final_answer(result), False
         except RefusalError as e:
             answer, refused = str(e), True
-        return {"answer": answer, "refused": refused, **summarize_run(result["messages"])}
+        return {
+            "answer": answer,
+            "refused": refused,
+            "retrieved_ids": retrieved_ids(result["messages"]),
+            "tool_calls": usage.tool_calls,
+            "tokens": usage.total_tokens,
+            "cost_usd": usage.cost_usd,
+            "seconds": usage.seconds,
+        }
 
     return target
 
@@ -116,6 +132,14 @@ def tool_calls(outputs: dict) -> dict:
 
 def tokens(outputs: dict) -> dict:
     return {"key": "tokens", "score": outputs["tokens"]}
+
+
+def cost_usd(outputs: dict) -> dict:
+    return {"key": "cost_usd", "score": round(outputs["cost_usd"], 4)}
+
+
+def seconds(outputs: dict) -> dict:
+    return {"key": "seconds", "score": round(outputs["seconds"], 1)}
 
 
 class KeyPointVerdict(BaseModel):
@@ -169,17 +193,6 @@ def make_key_points_judge():
     return key_points_covered
 
 
-def git_commit() -> str:
-    try:
-        commit = subprocess.run(
-            ["git", "rev-parse", "--short", "HEAD"], capture_output=True, text=True, check=True
-        ).stdout.strip()
-        dirty = subprocess.run(["git", "status", "--porcelain"], capture_output=True, text=True)
-        return commit + ("-dirty" if dirty.stdout.strip() else "")
-    except (OSError, subprocess.CalledProcessError):
-        return "unknown"
-
-
 def print_summary(results, scored_keys: list[str]) -> None:
     rows = []
     for row in results:
@@ -228,9 +241,16 @@ def main(argv: list[str] | None = None) -> int:
             make_key_points_judge(),
             tool_calls,
             tokens,
+            cost_usd,
+            seconds,
         ],
         experiment_prefix=f"{settings.model}",
-        metadata={"model": settings.model, "git_commit": git_commit(), "judge": JUDGE_MODEL},
+        metadata={
+            "model": settings.model,
+            "prompt_version": prompt_version(),
+            "git_commit": git_commit(),
+            "judge": JUDGE_MODEL,
+        },
         max_concurrency=2,
     )
     print_summary(

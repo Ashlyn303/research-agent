@@ -3,11 +3,14 @@
 import argparse
 import logging
 import sys
+import time
 
 from dotenv import find_dotenv, load_dotenv
 
 from research_agent.agent import RefusalError, build_agent, final_answer
 from research_agent.config import ConfigError, load_settings
+from research_agent.run_info import run_config
+from research_agent.usage import summarize_usage
 
 DEFAULT_QUESTION = "What are recent approaches to de novo protein design?"
 
@@ -40,7 +43,12 @@ def main(argv: list[str] | None = None) -> int:
 
     question = " ".join(args.question) or DEFAULT_QUESTION
     agent = build_agent(settings)
-    result = agent.invoke({"messages": [{"role": "user", "content": question}]})
+    started = time.monotonic()
+    result = agent.invoke(
+        {"messages": [{"role": "user", "content": question}]}, config=run_config(settings, "cli")
+    )
+    usage = summarize_usage(result["messages"], seconds=time.monotonic() - started)
+    logger.info("Run used %s", usage.summary())
     try:
         print(final_answer(result))
     except RefusalError as e:

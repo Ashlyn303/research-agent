@@ -1,6 +1,6 @@
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 
-from evals.checks import citation_validity, extract_ids, must_retrieve_recall, summarize_run
+from evals.checks import citation_validity, extract_ids, must_retrieve_recall, retrieved_ids
 from evals.run import load_cases
 
 
@@ -14,25 +14,14 @@ def test_extract_ids_ignores_years_quantities_and_embedded_numbers():
     assert extract_ids(text) == set()
 
 
-def test_summarize_run_collects_retrieved_ids_tool_calls_and_tokens():
+def test_retrieved_ids_come_from_tool_results_only():
     messages = [
-        HumanMessage("question"),
-        AIMessage(
-            "",
-            tool_calls=[{"name": "search_pubmed", "args": {"query": "x"}, "id": "1"}],
-            usage_metadata={"input_tokens": 100, "output_tokens": 20, "total_tokens": 120},
-        ),
+        HumanMessage("question about PMID 9999999"),
+        AIMessage("", tool_calls=[{"name": "search_pubmed", "args": {"query": "x"}, "id": "1"}]),
         ToolMessage("PMID 37433327: RFdiffusion (Nature, 2023)", tool_call_id="1"),
-        AIMessage(
-            "Answer (PMID 37433327)",
-            usage_metadata={"input_tokens": 200, "output_tokens": 50, "total_tokens": 250},
-        ),
+        AIMessage("Answer (PMID 37433327, PMID 8888888)"),
     ]
-    assert summarize_run(messages) == {
-        "retrieved_ids": ["37433327"],
-        "tool_calls": 1,
-        "tokens": 370,
-    }
+    assert retrieved_ids(messages) == ["37433327"]
 
 
 def test_citation_validity():

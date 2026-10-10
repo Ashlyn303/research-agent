@@ -11,9 +11,11 @@ class FakeAgent:
     def __init__(self, reply: AIMessage):
         self.reply = reply
         self.questions = []
+        self.configs = []
 
-    def invoke(self, state):
+    def invoke(self, state, config=None):
         self.questions.append(state["messages"][0]["content"])
+        self.configs.append(config)
         return {"messages": [self.reply]}
 
 
@@ -58,3 +60,22 @@ def test_importing_package_has_no_side_effects():
     code = "import research_agent.cli, research_agent.agent, research_agent.tools"
     env = {"PATH": "", "LANGSMITH_TRACING": "false"}
     subprocess.run([sys.executable, "-c", code], check=True, env=env)
+
+
+def test_trace_metadata_is_attached(monkeypatch):
+    _, agent = run_cli(monkeypatch, AIMessage("answer"), ["question"])
+    metadata = agent.configs[0]["metadata"]
+    assert metadata["model"] == "claude-sonnet-5-5"
+    assert {"prompt_version", "git_commit", "app_version"} <= set(metadata)
+    assert "cli" in agent.configs[0]["tags"]
+
+
+def test_verbose_logs_usage_summary(monkeypatch, caplog):
+    reply = AIMessage(
+        "answer",
+        usage_metadata={"input_tokens": 1000, "output_tokens": 100, "total_tokens": 1100},
+        response_metadata={"model_name": "claude-sonnet-5-5"},
+    )
+    with caplog.at_level(logging.INFO):
+        run_cli(monkeypatch, reply, ["-v", "question"])
+    assert "1,100 tokens, cost $0.003" in caplog.text

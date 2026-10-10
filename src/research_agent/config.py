@@ -3,7 +3,8 @@
 from pydantic import Field, SecretStr, ValidationError
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-DEFAULT_MODEL = "claude-opus-5-5"
+# Sonnet for development and evals; set MODEL=claude-opus-5-5 for final checks.
+DEFAULT_MODEL = "claude-sonnet-5-5"
 
 
 class ConfigError(Exception):
