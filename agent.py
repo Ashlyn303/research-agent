@@ -7,9 +7,9 @@ import time
 
 import requests
 from dotenv import load_dotenv
+from langchain.agents import create_agent
 from langchain.chat_models import init_chat_model
 from langchain_core.tools import tool
-from langchain.agents import create_agent
 
 load_dotenv()
 
@@ -52,10 +52,11 @@ def search_pubmed(query: str, max_results: int = 5) -> str:
         ).json()["result"]
     except (requests.RequestException, KeyError) as e:
         return f"PubMed search failed ({e!r}). Try again or rephrase the query."
-    return "\n".join(
-        f"PMID {pmid}: {summaries[pmid]['title']} ({summaries[pmid]['source']}, {summaries[pmid]['pubdate'][:4]})"
-        for pmid in ids
-    )
+    lines = []
+    for pmid in ids:
+        paper = summaries[pmid]
+        lines.append(f"PMID {pmid}: {paper['title']} ({paper['source']}, {paper['pubdate'][:4]})")
+    return "\n".join(lines)
 
 
 @tool

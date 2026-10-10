@@ -1,5 +1,7 @@
 # research-agent
 
+[![CI](https://github.com/Ashlyn303/research-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/Ashlyn303/research-agent/actions/workflows/ci.yml)
+
 A research assistant agent that searches PubMed, reads abstracts, and writes a cited summary answering a scientific question. Built with [LangGraph](https://github.com/langchain-ai/langgraph) / LangChain and Claude, with tracing in [LangSmith](https://smith.langchain.com).
 
 ```
@@ -38,6 +40,16 @@ cp .env.example .env   # then fill in your keys
 ```bash
 uv run agent.py "your research question"
 ```
+
+## Development
+
+```bash
+uv run pytest          # tool tests with fake PubMed responses (no network or API keys)
+uv run ruff check .    # lint
+uv run ruff format .   # format
+```
+
+GitHub Actions runs lint, format check and tests on every push and pull request.
 
 ## Problems solved along the way
 
