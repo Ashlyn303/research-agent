@@ -1,6 +1,6 @@
 # research-agent project plan
 
-_Last updated: 2026-10-10. Owner: Ashlyn Chen._
+_Last updated: 2026-10-13. Owner: Ashlyn Chen._
 
 Progress is tracked in [GitHub milestones](https://github.com/Ashlyn303/research-agent/milestones). This document explains the goals, design decisions, order of work and how we work. Update it when a decision changes the plan.
 
@@ -41,6 +41,15 @@ Everyday questions outside science and technology (Claude itself is better for t
 - `src/research_agent/` package with validated config and `research-agent` CLI (#2)
 - Relevance-sorted search with a `min_year` filter (#3)
 - CI, pre-commit (ruff, gitleaks), Dependabot, branch protection, MIT license (#1)
+
+**M1: Measure (done 2026-10-13)**
+
+- Eval harness: 5 questions, automatic checks plus a Haiku judge, LangSmith datasets and experiments, manual GitHub workflow (#5)
+- The v0.1 baseline is in the README: per-question scores and total cost for Sonnet 5.5 and Opus 5.5 (#5)
+- Trace metadata (model, prompt version, git commit) and per-run cost tracking (#15)
+- mypy in CI and pre-commit, `disallow_untyped_defs` over `src`, `evals` and `tests` (#6)
+
+**Next:** M2, starting with #4 (own `StateGraph` with the research/learning router). Every M2 PR that touches prompts, models, tools or the graph compares its eval scores against the M1 baseline.
 
 ## 3. Design
 
@@ -111,7 +120,7 @@ Quality: LangSmith traces (tagged) · datasets and experiments · feedback · co
 
 Estimates assume 3–5 hours per week. Each milestone ends with something working and merged.
 
-### M1: Measure (weeks 1–2, ~8 hours)
+### M1: Measure (weeks 1–2, ~8 hours) — done
 
 **Why first:** later changes (the new graph, new sources) can quietly make answers worse. Measuring first means every later PR can show scores before and after.
 
@@ -122,6 +131,8 @@ Estimates assume 3–5 hours per week. Each milestone ends with something workin
 | #6 | Type checking in CI |
 
 **Done when:** one command produces scores and cost for the current agent, and the baseline is in the README.
+
+**Met 2026-10-13:** `uv run python -m evals.run --model claude-sonnet-5-5` scores all 5 questions and reports cost ($0.13 for the set), and the v0.1 baseline table is in the README. Issues #5, #15 and #6 are closed.
 
 ### M2: MVP, v0.2.0 (weeks 3–8, ~20 hours)
 
@@ -290,5 +301,8 @@ Spend limit set in the Anthropic console, auto-reload off. Unit and graph tests 
 | 2026-10-10 | Own literature tools in Python; MCP used to expose them (M5), not to replace them |
 | 2026-10-10 | Add trusted-site web search and YouTube suggestions (M3) for engineering and learning topics |
 | 2026-10-10 | Desktop app is a post-v1.0 idea; never ship an API key inside an app |
+| 2026-10-13 | Eval key points are one idea each, and the judge is checked by re-scoring saved answers before its scores are trusted |
+| 2026-10-13 | Sonnet 5.5 is the default for development and evals; Opus only for end-of-milestone checks (about 4x the cost, no clear gain on the baseline) |
+| 2026-10-13 | Type checking is strict from the start: mypy with `disallow_untyped_defs` in CI and pre-commit, rather than tightened later |
 
 Longer explanations go into design decision records in `docs/adr/` (#9).
