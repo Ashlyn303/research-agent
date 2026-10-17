@@ -6,9 +6,9 @@ readme = "README.md"
 license = "MIT"
 requires-python = ">=3.12"
 dependencies = [
-    "langchain>=1.4.4",
-    "langchain-anthropic>=1.7.5",
-    "langgraph>=1.2.14",
+    "langchain>=1.4.5",
+    "langchain-anthropic>=1.7.6",
+    "langgraph>=1.2.15",
     "pydantic-settings>=2.15.0",
     "python-dotenv>=1.2.4",
     "requests>=2.34.2",
