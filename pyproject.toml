@@ -9,7 +9,7 @@ dependencies = [
     "langchain>=1.4.4",
     "langchain-anthropic>=1.7.5",
     "langgraph>=1.2.14",
-    "pydantic-settings>=2.15.0",
+    "pydantic-settings>=2.16.1",
     "python-dotenv>=1.2.4",
     "requests>=2.34.2",
 ]
